@@ -1,6 +1,6 @@
 import os
 import asyncio
-from openai import OpenAI, AsyncOpenAI
+from crew_algorithms.wildfire_alg.core.rate_limited_client import OpenAI, AsyncOpenAI
 from crew_algorithms.wildfire_alg.algorithms.ORCH.__main__ import Config
 from typing import List, Tuple, Dict
 from crew_algorithms.wildfire_alg.algorithms.ORCH.agent import Agent

@@ -317,7 +317,9 @@ async def async_wildfire_alg(cfg: Config):
     #     ),
     # )
     #logger.log_hparams(cfg)
-    device = "cpu" if not torch.has_cuda else "cuda:0"
+    device = "cuda:0" if torch.cuda.is_available() else "cpu"
+    device_name = torch.cuda.get_device_name(0) if device == "cuda:0" else "CPU"
+    print(f"[ORCH] Tensor device: {device} ({device_name})", flush=True)
     
     toggle_timestep_channel = ToggleTimestepChannel(uuid.uuid4())
 
@@ -1069,7 +1071,7 @@ async def async_wildfire_alg(cfg: Config):
             # Generate a TLDR summary for the human operator after each full cycle.
             if collaboration_mode == "human_feedback":
                 try:
-                    from openai import AsyncOpenAI as _AsyncOpenAI
+                    from crew_algorithms.wildfire_alg.core.rate_limited_client import AsyncOpenAI as _AsyncOpenAI
                     import tempfile as _tmp_tldr
 
                     _root = agents[-1]

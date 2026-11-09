@@ -110,6 +110,26 @@ bash run_ORCH.sh
 
 ## 5. Check the result
 
+ORCH uses a shared request budget for NVIDIA's hosted API. `run_ORCH.sh` defaults
+to `ORCH_LLM_RPM=40`; NVIDIA clients also enforce a maximum of 40 when started
+directly. Requests are spaced at least 1.55 seconds apart at that setting, including
+SDK retries, team generation, summaries, and chat requests. Threads and processes
+for the same OS user coordinate through `~/.cache/orch/request_budget.sqlite3`.
+HTTP 429 responses pause the shared budget using `Retry-After`, or 60 seconds if
+the server does not supply a valid delay. Existing SDK retry counts still apply.
+To leave capacity for other applications, start with a lower budget, for example
+`ORCH_LLM_RPM=30 bash run_ORCH.sh`. Other applications or machines using the same
+NVIDIA account are outside this local budget. `ORCH_RATE_LIMIT_DB` can change the
+database location; all participating processes must use the same local file.
+
+With a hosted API, model inference runs remotely. Locally, PyTorch uses an available
+CUDA GPU for environment tensors and falls back to CPU otherwise. `GPU_IDS` selects
+physical CUDA devices for jobs via `CUDA_VISIBLE_DEVICES`; each job sees its selected
+GPU as `cuda:0`. The runner defaults to GPU 0 and one job. Unity graphics use a
+separate rendering device: `NO_GRAPHICS=false bash run_ORCH.sh` enables the game
+window when a GUI display is available. CUDA device selection does not select
+Unity's renderer.
+
 ### ORCH Results
 
 When you run `bash run_ORCH.sh` from `crew-algorithms`, outputs are saved in the following locations (paths below are relative to the repository root).

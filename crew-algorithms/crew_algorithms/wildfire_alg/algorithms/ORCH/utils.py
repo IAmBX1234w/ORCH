@@ -1,12 +1,15 @@
 import json
 import re
-from openai import OpenAI, AsyncOpenAI
+from pathlib import Path
+from crew_algorithms.wildfire_alg.core.rate_limited_client import OpenAI, AsyncOpenAI
 from pydantic import BaseModel
 import os
 import threading
 import asyncio
 from typing import Dict, List, Any
 from crew_algorithms.wildfire_alg.config.configs import model_directory_name
+
+PROMPTS_DIR = Path(__file__).resolve().parent / "prompts"
 
 
 def _get_llm_model(cfg) -> str:
@@ -622,10 +625,7 @@ async def async_request_options(agent, global_data: dict) -> OptionSequence:
         agent_type_string = type_map.get(agent.type, "Unknown")
 
 
-    prompt_path = os.path.join("algorithms", "ORCH", "prompts", "planner", f"{agent_type_string}_planner.txt")
-    
-    if not os.path.exists(prompt_path):
-        prompt_path = os.path.join("crew_algorithms", "wildfire_alg", "algorithms", "ORCH", "prompts", "planner", f"{agent_type_string}_planner.txt")
+    prompt_path = PROMPTS_DIR / "planner" / f"{agent_type_string}_planner.txt"
     
     with open(prompt_path, 'r') as file:
         prompt_content = file.read()
@@ -777,10 +777,7 @@ Coordinates MUST be whole integers with no decimal points.
 Do NOT add line numbers. Output ONLY the pipe-delimited lines, one per input action, in order."""
 
     # Load translator prompt
-    prompt_path = os.path.join("algorithms", "ORCH", "prompts", "translator", f"{type_string}_translator.txt")
-    
-    if not os.path.exists(prompt_path):
-        prompt_path = os.path.join("crew_algorithms", "wildfire_alg", "algorithms", "ORCH", "prompts", "translator", f"{type_string}_translator.txt")
+    prompt_path = PROMPTS_DIR / "translator" / f"{type_string}_translator.txt"
     
     optionstring = "\n".join(option_sequence.actions)
 

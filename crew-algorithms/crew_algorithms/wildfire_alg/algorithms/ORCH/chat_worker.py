@@ -17,7 +17,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, Optional
 
-from openai import AsyncOpenAI
+from crew_algorithms.wildfire_alg.core.rate_limited_client import AsyncOpenAI
 from pydantic import BaseModel
 from typing import Literal
 

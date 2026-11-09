@@ -181,3 +181,9 @@ wildfire_data
 *.pt
 
 *.zip
+
+# Keep focused ORCH regression tests while excluding unrelated local test data.
+!/tests/
+/tests/*
+!/tests/test_rate_limited_client.py
+!/tests/test_option_execution.py

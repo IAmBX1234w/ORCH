@@ -54,10 +54,10 @@ SEEDS["Scale_Level_Simple"]="42 137 256 503 819"
 SEEDS["Scale_Level_Complex"]="42 137 256 503 819"
 
 
-MODEL="google/gemma-4-31B-it"
-URL="http://localhost:8000/v1"
-# Leave blank for a local/unauthenticated endpoint.
-API_KEY=""
+MODEL="nvidia/nemotron-3.5-super-vl:free"
+URL="https://openrouter.ai/api/v1"
+# Read credentials from the environment; leave unset for a local/unauthenticated endpoint.
+API_KEY="${BASELINE_API_KEY:-${OPENROUTER_API_KEY:-}}"
 
 export BASELINE_API_KEY="$API_KEY"
 MODEL_FAMILY="custom"

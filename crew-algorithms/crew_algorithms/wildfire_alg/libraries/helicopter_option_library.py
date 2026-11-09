@@ -1,5 +1,5 @@
 from enum import Enum
-from crew_algorithms.wildfire_alg.core.gpt import Action
+from crew_algorithms.wildfire_alg.core.action_types import Action
 
 
     # - Move to any coordinate location. Distance does not matter, you will reach that location in one move.

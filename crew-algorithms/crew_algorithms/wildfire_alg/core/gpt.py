@@ -3,18 +3,9 @@ import os
 from pydantic import BaseModel
 import numpy as np
 import certifi
+from crew_algorithms.wildfire_alg.core.action_types import Action
 
 
-
-class Action(BaseModel):
-    done: bool
-    action: int
-    x: int
-    y: int
-    explanation : str
-
-    def print_action(self)->None:
-        print([self.done, self.action, self.x, self.y, self.explanation])
 
 class Critique(BaseModel):
     judge: bool

@@ -1,5 +1,5 @@
 PRESETS=(
-  "Cut_Trees_Sparse_small"
+  # "Cut_Trees_Sparse_small"
   # "Cut_Trees_Sparse_large"
   # "Cut_Trees_Lines_small"
   # "Cut_Trees_Lines_large"
@@ -17,13 +17,13 @@ PRESETS=(
   # "Rescue_Civilians_Search_Rescue_Transport"
   # # "Full_Game"
   # "Scout_Fire_Drone_Lost"
-  # "Transport_Helicopter_Down"
-  # "Rescue_Civilians_Surprise"
-  # "Suppress_Fire_Extinguish_Second_Fire"
-  # "Suppress_Fire_Contain_Water_Source"
-  # "Suppress_Fire_Extinguish_Rapid_Growth"
-  # "Scale_Level_Simple"
-  # "Scale_Level_Complex"
+  "Transport_Helicopter_Down"
+  "Rescue_Civilians_Surprise"
+  "Suppress_Fire_Extinguish_Second_Fire"
+  "Suppress_Fire_Contain_Water_Source"
+  "Suppress_Fire_Extinguish_Rapid_Growth"
+  "Scale_Level_Simple"
+  "Scale_Level_Complex"
 )
 
 declare -A SEEDS
@@ -84,18 +84,22 @@ TEAM_CONFIGS["Scale_Level_Simple"]='++envs.team_config={humans: [], managers: {5
 TEAM_CONFIGS["Scale_Level_Complex"]='++envs.team_config={humans: [], managers: {51: {children: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], type: "horizontal", team_name: "Squad A"}, 52: {children: [11, 12, 13, 14, 15, 16, 17, 18, 19, 20], type: "horizontal", team_name: "Squad B"}, 53: {children: [21, 22, 23, 24, 25, 26, 27, 28, 29, 30], type: "horizontal", team_name: "Squad C"}, 54: {children: [31, 32, 33, 34, 35, 36, 37, 38, 39, 40], type: "horizontal", team_name: "Squad D"}, 55: {children: [41, 42, 43, 44, 45, 46, 47, 48, 49, 50], type: "horizontal", team_name: "Squad E"}, 56: {children: [51, 52, 53, 54, 55], type: "vertical", team_name: "Command"}}}'
 
 # Set these values to the exact model ID exposed by your API and its URL.
-MODEL="google/gemma-4-31B-it"
-URL="http://localhost:8000/v1"
-# Leave blank for a local/unauthenticated endpoint.
-API_KEY=""
+MODEL="nvidia/nemotron-3.5-super-vl-120b-a12b"
+URL="https://integrate.api.nvidia.com/v1"
+# Read credentials from the environment; leave unset for a local/unauthenticated endpoint.
+API_KEY="${ORCH_API_KEY:-${NVIDIA_API_KEY:-}}"
+
 export ORCH_API_KEY="$API_KEY"
 MODEL_FAMILY="custom"
 [[ "$URL" == https://api.openai.com/* ]] && MODEL_FAMILY="gpt"
 MODEL_LOG_NAME="${MODEL##*/}"
-GPU_IDS=(0 1 2 3 4 6 7)  # GPU 5 is disabled here.
+GPU_IDS=(0)  # This machine has one CUDA GPU.
 NUM_GPUS=${#GPU_IDS[@]}
 ALGOS=("ORCH")
 MAX_JOBS=1
+
+# Shared across all ORCH agents, jobs, and SDK retries on this machine.
+export ORCH_LLM_RPM="${ORCH_LLM_RPM:-40}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOG_DIR="$SCRIPT_DIR/experiment_logs/${MODEL_LOG_NAME}"
@@ -118,18 +122,19 @@ run_job () {
   {
     echo "Starting: $algo | $preset | seed=$seed | GPU=$gpu_id"
     echo "Log file: $log_file"
-    echo "Team config: $team_config"
+    echo "Team config: ${TEAM_CONFIGS[$preset]}"
+    echo "LLM request budget: $ORCH_LLM_RPM/min (NVIDIA capped at 40/min)"
     echo
 
 
-    python -m crew_algorithms.wildfire_alg.algorithms.${algo} \
+    CUDA_VISIBLE_DEVICES="$gpu_id" python -u -m crew_algorithms.wildfire_alg.algorithms.${algo} \
       envs.level=$preset \
       envs.seed=$seed \
       envs.collaboration_mode=ai_control \
       envs.llm_model="$MODEL_FAMILY" \
       envs.model_name="$MODEL" \
       envs.llm_url="$URL" \
-      envs.no_graphics=true \
+      envs.no_graphics="${NO_GRAPHICS:-true}" \
       "${TEAM_CONFIGS[$preset]}"
 
     status=$?

@@ -1,11 +1,16 @@
 import os
 import json
 import asyncio
-from openai import OpenAI, AsyncOpenAI
-from crew_algorithms.wildfire_alg.algorithms.ORCH.__main__ import Config
-from typing import List, Optional, Tuple, Dict, Literal
+from pathlib import Path
+from crew_algorithms.wildfire_alg.core.rate_limited_client import OpenAI, AsyncOpenAI
+from typing import TYPE_CHECKING, List, Optional, Tuple, Dict, Literal
 from .master_logger import get_master_logger
 from .event_emitter import emit_event
+
+if TYPE_CHECKING:
+    from crew_algorithms.wildfire_alg.algorithms.ORCH.__main__ import Config
+
+PROMPTS_DIR = Path(__file__).resolve().parent / "prompts"
 
 # Model depth levels for controlling which model to use
 # HIGH: For complex reasoning tasks like manager planning for a team
@@ -160,10 +165,7 @@ class Agent:
 
         # Load overview template with error handling
         try:
-            overview_path = os.path.join("algorithms", "ORCH", "prompts", "overviews", f"{agent_path}_overview.txt")
-            
-            if not os.path.exists(overview_path):
-                overview_path = os.path.join("crew_algorithms", "wildfire_alg", "algorithms", "ORCH", "prompts", "overviews", f"{agent_path}_overview.txt")
+            overview_path = PROMPTS_DIR / "overviews" / f"{agent_path}_overview.txt"
             
             with open(overview_path, 'r') as file:
                 self.overview_template = file.read()        
@@ -177,10 +179,7 @@ class Agent:
 
         # Load child feedback template with error handling
         try:
-            child_feedback_path = os.path.join("algorithms", "ORCH", "prompts", "child_feedback", f"{agent_path}_child_feedback.txt")
-            
-            if not os.path.exists(child_feedback_path):
-                child_feedback_path = os.path.join("crew_algorithms", "wildfire_alg", "algorithms", "ORCH", "prompts", "child_feedback", f"{agent_path}_child_feedback.txt")
+            child_feedback_path = PROMPTS_DIR / "child_feedback" / f"{agent_path}_child_feedback.txt"
             
             with open(child_feedback_path, 'r') as file:
                 child_message = file.read()
@@ -194,10 +193,7 @@ class Agent:
 
         if type != -1:
             try:
-                planner_path = os.path.join("algorithms", "WILDFIRE_MULTI_ALG", f"{agent_path}-data", "prompts", "manager_prompt.txt")
-                
-                if not os.path.exists(planner_path):
-                    planner_path = os.path.join("crew_algorithms", "wildfire_alg", "algorithms", "WILDFIRE_MULTI_ALG", f"{agent_path}-data", "prompts", "manager_prompt.txt")
+                planner_path = PROMPTS_DIR / "planner" / f"{agent_path}_planner.txt"
                 
                 with open(planner_path, 'r') as file:
                     self.planner = file.read()
@@ -208,10 +204,7 @@ class Agent:
         # Load knowledge base for managers
         if type == -1:  # Manager agent
             try:
-                knowledge_base_path = os.path.join("algorithms", "ORCH", "prompts", "management", "knowledge_base.json")
-                
-                if not os.path.exists(knowledge_base_path):
-                    knowledge_base_path = os.path.join("crew_algorithms", "wildfire_alg", "algorithms", "ORCH", "prompts", "management", "knowledge_base.json")
+                knowledge_base_path = PROMPTS_DIR / "management" / "knowledge_base.json"
                 
                 with open(knowledge_base_path, 'r') as file:
                     knowledge_base_data = json.load(file)
@@ -1470,7 +1463,7 @@ class Agent:
         # Type capabilities once per worker type
         type_descriptions = []
         for agent_type in seen_types:
-            filepath = os.path.join('algorithms', 'ORCH', 'prompts', 'team_overviews', f'{agent_type.lower()}.txt')
+            filepath = PROMPTS_DIR / "team_overviews" / f"{agent_type.lower()}.txt"
             try:
                 with open(filepath, 'r') as f:
                     desc = f.read().strip()

@@ -455,8 +455,13 @@ def generate_action_from_option(agent):
 
             else:
                 raise ValueError(f"No action library defined for agent type {agent.type}")
-        except:
+        except Exception as error:
             agent._error_idle = True
+            print(
+                f"ERROR: Agent {agent.id} could not execute {current_option}: "
+                f"{type(error).__name__}: {error}; holding current position",
+                flush=True,
+            )
             error_option = Action(type=0, param_1=0, param_2=0, description=f"ERROR EXECUTING ACTION: {current_option}")
             agent.past_options.append(error_option)
             agent.options.pop(0)
@@ -530,8 +535,12 @@ def check_if_option_done(agent):
         if agent.type in action_libraries:
             try:
                 action_libraries[agent.type](agent, current_option)
-            except:
-                pass
+            except Exception as error:
+                print(
+                    f"ERROR: Agent {agent.id} could not check option {current_option}: "
+                    f"{type(error).__name__}: {error}",
+                    flush=True,
+                )
         else:
             raise ValueError(f"No action library defined for agent type {agent.type}")
     
@@ -630,4 +639,4 @@ def check_game_done(global_data, cfg, past_score):
     else:
         print("invalid game type")
         return True
-    
+

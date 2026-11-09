@@ -1,5 +1,5 @@
 from enum import Enum
-from crew_algorithms.wildfire_alg.core.gpt import Action
+from crew_algorithms.wildfire_alg.core.action_types import Action
 
 
 def Run_Drone_Option(agent, action):
